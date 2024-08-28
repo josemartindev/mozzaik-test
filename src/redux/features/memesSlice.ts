@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { getAuthorById, getMemeComments, getMemes } from '../../api';
+import { getAuthorById, getMemeComments, getMemes, createMemeComment } from '../../api';
 
 export type Author = {
   id: string;
@@ -20,17 +20,19 @@ export type Comment = {
   createdAt: string;
 };
 
+export type Meme = {
+  id: string;
+  description: string;
+  pictureUrl: string;
+  author: Author;
+  texts: Text[];
+  createdAt: string;
+  comments: Comment[];
+  commentsCount: string;
+};
+
 export type MemesState = {
-  memes: {
-    id: string;
-    description: string;
-    pictureUrl: string;
-    author: Author;
-    texts: Text[];
-    createdAt: string;
-    comments: Comment[];
-    commentsCount: string;
-  }[]
+  memes: Meme[]
   isFetching: boolean;
   total: number;
   pageSize: number;
@@ -86,6 +88,26 @@ export const fetchMemes = createAsyncThunk(
   }
 );
 
+export const createComment = createAsyncThunk(
+  'memes/createComment',
+  async ({ token, memeId, content }: { token: string, memeId: string, content: string }, { rejectWithValue }) => {
+    try {
+      const comment = await createMemeComment(token, memeId, content);
+      const author: Author = await getAuthorById(token, comment.authorId);
+
+      return {
+        id: comment.id,
+        content: comment.content,
+        createdAt: comment.createdAt,
+        author,
+      }
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+
 export const memesSlice = createSlice({
   name: 'memes',
   initialState,
@@ -99,6 +121,13 @@ export const memesSlice = createSlice({
     })
     .addCase(fetchMemes.pending, (state) => {
       state.isFetching = true;
+    });
+    builder.addCase(createComment.fulfilled, (state, action) => {
+      const meme = state.memes.find((meme) => meme.id === action.meta.arg.memeId);
+      if (meme) {
+        meme.comments.unshift(action.payload);
+        meme.commentsCount = (parseInt(meme.commentsCount) + 1).toString();
+      }
     });
   }
 });

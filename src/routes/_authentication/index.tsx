@@ -1,5 +1,7 @@
-import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { createFileRoute } from "@tanstack/react-router";
+import { CaretDown, CaretUp, Chat } from "@phosphor-icons/react";
 import {
   Avatar,
   Box,
@@ -13,20 +15,15 @@ import {
   Input,
   VStack,
 } from "@chakra-ui/react";
-import { CaretDown, CaretUp, Chat } from "@phosphor-icons/react";
 import { format } from "timeago.js";
-import {
-  createMemeComment,
-} from "../../api";
+
 import { Loader } from "../../components/loader";
 import { MemePicture } from "../../components/meme-picture";
-import { useEffect, useState } from "react";
 import { AppState } from "../../main";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchMemes } from "../../redux/features/memesSlice";
+import { fetchMemes, createComment } from "../../redux/features/memesSlice";
 import { AppDispatch, RootState } from '../../main';
 import { getUserByIdentification } from "../../redux/features/userSlice";
-import { authenticate, signout } from "../../redux/features/authenticationSlice";
+import { signout } from "../../redux/features/authenticationSlice";
 
 export const MemeFeedPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -38,13 +35,9 @@ export const MemeFeedPage: React.FC = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      console.log('truc')
       dispatch(signout());
-      redirect({
-        to: "/login",
-      });
+      window.location.reload();
     }
-    console.log('isAuthenticated', isAuthenticated);
   }, [isAuthenticated]);
 
   useEffect(() => {
@@ -61,12 +54,6 @@ export const MemeFeedPage: React.FC = () => {
   const [commentContent, setCommentContent] = useState<{
     [key: string]: string;
   }>({});
- 
-  const { mutate } = useMutation({
-    mutationFn: async (data: { memeId: string; content: string }) => {
-      await createMemeComment(token, data.memeId, data.content);
-    },
-  });
 
   if (isFetching) {
     return <Loader data-testid="meme-feed-loader" />;
@@ -144,12 +131,7 @@ export const MemeFeedPage: React.FC = () => {
                   <form
                     onSubmit={(event) => {
                       event.preventDefault();
-                      if (commentContent[meme.id]) {
-                        mutate({
-                          memeId: meme.id,
-                          content: commentContent[meme.id],
-                        });
-                      }
+                      dispatch(createComment({ token, memeId: meme.id, content: commentContent[meme.id] }));
                     }}
                   >
                     <Flex alignItems="center">
