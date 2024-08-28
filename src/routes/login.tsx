@@ -12,7 +12,10 @@ import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { login, UnauthorizedError } from "../api";
-import { useAuthentication } from "../contexts/authentication";
+import { useSelector, useDispatch } from 'react-redux';
+import { authenticate } from "../redux/features/authenticationSlice";
+import { useEffect } from "react";
+import { AppState } from "../main";
 
 type SearchParams = {
   redirect?: string;
@@ -36,11 +39,14 @@ function renderError(error: Error) {
 
 export const LoginPage: React.FC = () => {
   const { redirect } = Route.useSearch();
-  const { state, authenticate } = useAuthentication();
+  const dispatch = useDispatch();
+  const isAuthenticated = useSelector((state: AppState) => state.auth.isAuthenticated);
+  console.log('is authhhh ===> ', isAuthenticated)
   const { mutate, isPending, error } = useMutation({
     mutationFn: (data: Inputs) => login(data.username, data.password),
     onSuccess: ({ jwt }) => {
-      authenticate(jwt);
+      console.log('JWT ====> ', jwt)
+      dispatch(authenticate(jwt));
     }
   });
   const { register, handleSubmit } = useForm<Inputs>();
@@ -48,7 +54,12 @@ export const LoginPage: React.FC = () => {
     mutate(data);
   };
 
-  if (state.isAuthenticated) {
+  useEffect(() => {
+    console.log('IS AUTH ====> ', isAuthenticated)
+  }, [isAuthenticated])
+
+  if (isAuthenticated) {
+    console.log('REDIRECT ====> ', redirect)
     return <Navigate to={redirect ?? '/'} />;
   }
 

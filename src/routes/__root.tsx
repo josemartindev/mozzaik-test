@@ -11,20 +11,16 @@ import {
   Link,
   Outlet,
 } from "@tanstack/react-router";
-import {
-  AuthenticationState,
-  useAuthentication,
-} from "../contexts/authentication";
+import { AuthenticationState } from "../redux/features/authenticationSlice";
 import { UserDropdown } from "../components/user-dropdown";
 import { Plus } from "@phosphor-icons/react";
+import { useSelector } from "react-redux";
 
-type RouterContext = {
-  authState: AuthenticationState;
-};
 
-export const Route = createRootRouteWithContext<RouterContext>()({
+export const Route = createRootRouteWithContext()({
   component: () => {
-    const { state } = useAuthentication();
+    const isAuthenticated = useSelector((state: AuthenticationState) => state.isAuthenticated);
+
     return (
       <Flex width="full" height="full" direction="column">
         {/* Header */}
@@ -38,7 +34,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
           <Heading size="lg" color="white">
             MemeFactory
           </Heading>
-          {state.isAuthenticated && (
+          {isAuthenticated && (
             <HStack
               alignItems="center"
               divider={<StackDivider border="white" />}

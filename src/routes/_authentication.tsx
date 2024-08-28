@@ -4,14 +4,15 @@ import {
   Outlet,
   useLocation,
 } from "@tanstack/react-router";
-import { useAuthentication } from "../contexts/authentication";
+import { useSelector } from "react-redux";
+import { AppState } from "../main";
 
 export const Route = createFileRoute("/_authentication")({
   component: () => {
-    const { state } = useAuthentication();
+    const isAuthenticated = useSelector((state: AppState) => state.auth.isAuthenticated);
     const { pathname } = useLocation();
 
-    if (!state.isAuthenticated) {
+    if (!isAuthenticated) {
       return <Navigate to="/login" search={{ redirect: pathname }} replace />;
     }
 

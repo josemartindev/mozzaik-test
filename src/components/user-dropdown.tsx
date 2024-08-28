@@ -10,23 +10,29 @@ import {
 } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { CaretDown, CaretUp, SignOut } from "@phosphor-icons/react";
-import { useAuthentication } from "../contexts/authentication";
 import { getUserById } from "../api";
+import { useDispatch, useSelector } from "react-redux";
+import { signout } from "../redux/features/authenticationSlice";
+import { AppState } from "../main";
 
 export const UserDropdown: React.FC = () => {
-  const { state, signout } = useAuthentication();
+  // const { state, signout } = useAuthentication();
+  const isAuthenticated = useSelector((state: AppState) => state.auth.isAuthenticated);
+  const token = useSelector((state: AppState) => state.auth.token);
+  const userId = useSelector((state: AppState) => state.auth.userId);
+  const dispatch = useDispatch();
   const { data: user, isLoading } = useQuery({
-    queryKey: ["user", state.isAuthenticated ? state.userId : "anon"],
+    queryKey: ["user", isAuthenticated ? userId : "anon"],
     queryFn: () => {
-      if (state.isAuthenticated) {
-        return getUserById(state.token, state.userId);
+      if (isAuthenticated) {
+        return getUserById(token, userId);
       }
       return null;
     },
-    enabled: state.isAuthenticated,
+    enabled: isAuthenticated,
   });
 
-  if (!state.isAuthenticated || isLoading) {
+  if (!isAuthenticated || isLoading) {
     return null;
   }
 
@@ -50,7 +56,7 @@ export const UserDropdown: React.FC = () => {
             </Flex>
           </MenuButton>
           <MenuList>
-            <MenuItem icon={<Icon as={SignOut} />} onClick={signout}>Sign Out</MenuItem>
+            <MenuItem icon={<Icon as={SignOut} />} onClick={() => dispatch(signout())}>Sign Out</MenuItem>
           </MenuList>
         </>
       )}
