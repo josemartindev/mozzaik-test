@@ -2,15 +2,19 @@ import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { ChakraProvider } from "@chakra-ui/react";
-import { theme } from "./config/theme";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Provider } from 'react-redux';
+import { configureStore } from "@reduxjs/toolkit";
+
 import authReducer, { AuthenticationState } from './redux/features/authenticationSlice';
 import { userReducer, UserState } from './redux/features/userSlice';
+import { memesSlice, MemesState } from "./redux/features/memesSlice";
+
+import { tokenExpirationMiddleware } from "./tokenExpirationMiddleware";
+
+import { theme } from "./config/theme";
 
 import { routeTree } from "./routeTree.gen";
-import { configureStore } from "@reduxjs/toolkit";
-import { memesSlice, MemesState } from "./redux/features/memesSlice";
 
 export type AppState = {
   auth: AuthenticationState;
@@ -35,6 +39,7 @@ export const store = configureStore({
     memes: memesSlice.reducer,
     user: userReducer,
   },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(tokenExpirationMiddleware)
 });
 
 export type RootState = ReturnType<typeof store.getState>;

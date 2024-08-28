@@ -18,11 +18,13 @@ export const authenticationSlice = createSlice({
   initialState,
   reducers: {
     authenticate: (state, action) => {
+      localStorage.setItem('token', action.payload);
       state.isAuthenticated = true;
       state.token = action.payload;
       state.userId = jwtDecode<{ id: string }>(action.payload).id
     },
     signout: (state) => {
+      localStorage.removeItem('token');
       state.isAuthenticated = false;
       state.token = '';
       state.userId = '';

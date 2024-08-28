@@ -4,18 +4,25 @@ import {
   Outlet,
   useLocation,
 } from "@tanstack/react-router";
-import { useSelector } from "react-redux";
-import { AppState } from "../main";
+import { useDispatch } from "react-redux";
+import { authenticate } from "../redux/features/authenticationSlice";
 
 export const Route = createFileRoute("/_authentication")({
   component: () => {
-    const isAuthenticated = useSelector((state: AppState) => state.auth.isAuthenticated);
+    const dispatch = useDispatch();
+    const isAuthenticated = localStorage.getItem('token') ? dispatch(authenticate(localStorage.getItem('token'))) : false;
     const { pathname } = useLocation();
 
-    if (!isAuthenticated) {
-      return <Navigate to="/login" search={{ redirect: pathname }} replace />;
+    if (pathname === '/login' && isAuthenticated) {
+      return <Outlet />;
     }
 
-    return <Outlet />;
+    if (!isAuthenticated) {
+      console.log('Entered ', isAuthenticated)
+      return <Navigate to="/login" search={{ redirect: pathname }} replace />;
+    } else {
+      return <Outlet />;
+    }
+
   },
 });

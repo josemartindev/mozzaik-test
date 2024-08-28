@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import {
   Avatar,
   Box,
@@ -26,13 +26,26 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchMemes } from "../../redux/features/memesSlice";
 import { AppDispatch, RootState } from '../../main';
 import { getUserByIdentification } from "../../redux/features/userSlice";
+import { authenticate, signout } from "../../redux/features/authenticationSlice";
 
 export const MemeFeedPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const { username, pictureUrl: userPictureUrl } = useSelector((state: AppState) => state.user);
   const isFetching = useSelector((state: RootState) => state.memes.isFetching);
   const memes = useSelector((state: AppState) => state.memes.memes);
-  const { username, pictureUrl: userPictureUrl } = useSelector((state: AppState) => state.user);
   const token = useSelector((state: AppState) => state.auth.token);
+  const isAuthenticated = useSelector((state: AppState) => state.auth.isAuthenticated);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      console.log('truc')
+      dispatch(signout());
+      redirect({
+        to: "/login",
+      });
+    }
+    console.log('isAuthenticated', isAuthenticated);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (!isFetching) {
@@ -40,8 +53,6 @@ export const MemeFeedPage: React.FC = () => {
       dispatch(getUserByIdentification({ token }));
     }
   }, []);
-
-
  
   const [openedCommentSection, setOpenedCommentSection] = useState<
     string | null

@@ -11,15 +11,22 @@ import {
   Link,
   Outlet,
 } from "@tanstack/react-router";
-import { AuthenticationState } from "../redux/features/authenticationSlice";
-import { UserDropdown } from "../components/user-dropdown";
+import { useDispatch, useSelector } from "react-redux";
 import { Plus } from "@phosphor-icons/react";
-import { useSelector } from "react-redux";
+
+import { UserDropdown } from "../components/user-dropdown";
+import { signout } from '../redux/features/authenticationSlice';
+import { AppState } from "../main";
 
 
 export const Route = createRootRouteWithContext()({
   component: () => {
-    const isAuthenticated = useSelector((state: AuthenticationState) => state.isAuthenticated);
+    const isAuthenticated = useSelector((state: AppState) => state.auth.isAuthenticated);
+    const dispatch = useDispatch();
+  
+    const signOut = () => {
+      dispatch(signout());
+    }
 
     return (
       <Flex width="full" height="full" direction="column">
@@ -46,6 +53,9 @@ export const Route = createRootRouteWithContext()({
                 to="/create"
               >
                 Create a meme
+              </Button>
+              <Button onClick={signOut}>
+                Sign out
               </Button>
               <UserDropdown />
             </HStack>

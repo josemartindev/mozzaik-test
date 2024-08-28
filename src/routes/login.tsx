@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Flex,
   FormControl,
@@ -8,13 +9,13 @@ import {
   Button,
   FormErrorMessage,
 } from "@chakra-ui/react";
-import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { SubmitHandler, useForm } from "react-hook-form";
-import { login, UnauthorizedError } from "../api";
+import { useForm } from "react-hook-form";
 import { useSelector, useDispatch } from 'react-redux';
+import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { login, UnauthorizedError } from "../api";
+
 import { authenticate } from "../redux/features/authenticationSlice";
-import { useEffect } from "react";
+
 import { AppState } from "../main";
 
 type SearchParams = {
@@ -41,19 +42,23 @@ export const LoginPage: React.FC = () => {
   const { redirect } = Route.useSearch();
   const dispatch = useDispatch();
   const isAuthenticated = useSelector((state: AppState) => state.auth.isAuthenticated);
-  const { mutate, isPending, error } = useMutation({
-    mutationFn: (data: Inputs) => login(data.username, data.password),
-    onSuccess: ({ jwt }) => {
-      dispatch(authenticate(jwt));
-    }
-  });
-  const { register, handleSubmit } = useForm<Inputs>();
-  const onSubmit: SubmitHandler<Inputs> = async (data) => {
-    mutate(data);
-  };
+  const [error, setError] = useState<Error | null>(null);
+  const [isPending, setIsPending] = useState(false);
 
-  useEffect(() => {
-  }, [isAuthenticated])
+  
+  const { register, handleSubmit } = useForm<Inputs>();
+  const onSubmit = async (data: { username: string, password: string }) => {
+    setIsPending(true);
+    const res = await login(data.username, data.password);
+    if (res instanceof UnauthorizedError) {
+      setIsPending(false);
+      setError(res);
+    } else {
+      setIsPending(false);
+      setError(null);
+      dispatch(authenticate(res.jwt));
+    }
+  };
 
   if (isAuthenticated) {
     return <Navigate to={redirect ?? '/'} />;

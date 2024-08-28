@@ -86,8 +86,6 @@ export const fetchMemes = createAsyncThunk(
   }
 );
 
-
-
 export const memesSlice = createSlice({
   name: 'memes',
   initialState,
