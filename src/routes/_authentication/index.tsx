@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Avatar,
@@ -17,84 +17,50 @@ import { CaretDown, CaretUp, Chat } from "@phosphor-icons/react";
 import { format } from "timeago.js";
 import {
   createMemeComment,
-  getMemeComments,
-  GetMemeCommentsResponse,
-  getMemes,
-  GetMemesResponse,
-  getUserById,
-  GetUserByIdResponse,
 } from "../../api";
 import { Loader } from "../../components/loader";
 import { MemePicture } from "../../components/meme-picture";
-import { useState } from "react";
-import { jwtDecode } from "jwt-decode";
+import { useEffect, useState } from "react";
 import { AppState } from "../../main";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchMemes } from "../../redux/features/memesSlice";
+import { AppDispatch, RootState } from '../../main';
+import { getUserByIdentification } from "../../redux/features/userSlice";
 
 export const MemeFeedPage: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const isFetching = useSelector((state: RootState) => state.memes.isFetching);
+  const memes = useSelector((state: AppState) => state.memes.memes);
+  const { username, pictureUrl: userPictureUrl } = useSelector((state: AppState) => state.user);
   const token = useSelector((state: AppState) => state.auth.token);
-  const { isLoading, data: memes } = useQuery({
-    queryKey: ["memes"],
-    queryFn: async () => {
-      return (await getMemes(token, 1)).results;
-      // const memes: GetMemesResponse["results"] = [];
-      // const firstPage = await getMemes(token, 1);
-      // memes.push(...firstPage.results);
-      // const remainingPages =
-      //   Math.ceil(firstPage.total / firstPage.pageSize) - 1;
-      // for (let i = 0; i < remainingPages; i++) {
-      //   const page = await getMemes(token, i + 2);
-      //   memes.push(...page.results);
-      // }
-      // const memesWithAuthorAndComments = [];
-      // for (let meme of memes) {
-      //   const author = await getUserById(token, meme.authorId);
-      //   const comments: GetMemeCommentsResponse["results"] = [];
-      //   const firstPage = await getMemeComments(token, meme.id, 1);
-      //   comments.push(...firstPage.results);
-      //   const remainingCommentPages =
-      //     Math.ceil(firstPage.total / firstPage.pageSize) - 1;
-      //   for (let i = 0; i < remainingCommentPages; i++) {
-      //     const page = await getMemeComments(token, meme.id, i + 2);
-      //     comments.push(...page.results);
-      //   }
-      //   const commentsWithAuthor: (GetMemeCommentsResponse["results"][0] & {
-      //     author: GetUserByIdResponse;
-      //   })[] = [];
-      //   for (let comment of comments) {
-      //     const author = await getUserById(token, comment.authorId);
-      //     commentsWithAuthor.push({ ...comment, author });
-      //   }
-      //   memesWithAuthorAndComments.push({
-      //     ...meme,
-      //     author,
-      //     comments: commentsWithAuthor,
-      //   });
-      // }
-      // return memesWithAuthorAndComments;
-      return (await getMemes(token, 1)).results;
-    },
-  });
-  const { data: user } = useQuery({
-    queryKey: ["user"],
-    queryFn: async () => {
-      return await getUserById(token, jwtDecode<{ id: string }>(token).id);
-    },
-  });
+
+  useEffect(() => {
+    if (!isFetching) {
+      dispatch(fetchMemes({ token, page: 1 }));
+      dispatch(getUserByIdentification({ token }));
+    }
+  }, []);
+
+
+ 
   const [openedCommentSection, setOpenedCommentSection] = useState<
     string | null
   >(null);
+
   const [commentContent, setCommentContent] = useState<{
     [key: string]: string;
   }>({});
+ 
   const { mutate } = useMutation({
     mutationFn: async (data: { memeId: string; content: string }) => {
       await createMemeComment(token, data.memeId, data.content);
     },
   });
-  if (isLoading) {
+
+  if (isFetching) {
     return <Loader data-testid="meme-feed-loader" />;
   }
+
   return (
     <Flex width="full" height="full" justifyContent="center" overflowY="auto">
       <VStack
@@ -179,8 +145,8 @@ export const MemeFeedPage: React.FC = () => {
                       <Avatar
                         borderWidth="1px"
                         borderColor="gray.300"
-                        name={user?.username}
-                        src={user?.pictureUrl}
+                        name={username}
+                        src={userPictureUrl}
                         size="sm"
                         mr={2}
                       />

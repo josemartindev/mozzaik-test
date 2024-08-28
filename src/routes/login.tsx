@@ -41,11 +41,9 @@ export const LoginPage: React.FC = () => {
   const { redirect } = Route.useSearch();
   const dispatch = useDispatch();
   const isAuthenticated = useSelector((state: AppState) => state.auth.isAuthenticated);
-  console.log('is authhhh ===> ', isAuthenticated)
   const { mutate, isPending, error } = useMutation({
     mutationFn: (data: Inputs) => login(data.username, data.password),
     onSuccess: ({ jwt }) => {
-      console.log('JWT ====> ', jwt)
       dispatch(authenticate(jwt));
     }
   });
@@ -55,11 +53,9 @@ export const LoginPage: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log('IS AUTH ====> ', isAuthenticated)
   }, [isAuthenticated])
 
   if (isAuthenticated) {
-    console.log('REDIRECT ====> ', redirect)
     return <Navigate to={redirect ?? '/'} />;
   }
 

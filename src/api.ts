@@ -147,3 +147,31 @@ export async function createMemeComment(token: string, memeId: string, content: 
     body: JSON.stringify({ content }),
   }).then(res => checkStatus(res).json());
 }
+
+/**
+ * Get an author by their id
+ * @param token
+ * @param id
+ */
+export async function getAuthorById(token: string, id: string): Promise<GetUserByIdResponse> {
+  return await fetch(`${BASE_URL}/users/${id}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  }).then(res => checkStatus(res).json());
+}
+
+/**
+ * Get a comment by meme id
+ * @param token
+ * @param memeId
+ */
+export async function getCommentByMemeId(token: string, memeId: string): Promise<GetMemeCommentsResponse> {
+  return await fetch(`${BASE_URL}/memes/${memeId}/comments`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  }).then(res => checkStatus(res).json());
+}
