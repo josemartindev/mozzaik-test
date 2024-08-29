@@ -44,20 +44,19 @@ export const LoginPage: React.FC = () => {
   const isAuthenticated = useSelector((state: AppState) => state.auth.isAuthenticated);
   const [error, setError] = useState<Error | null>(null);
   const [isPending, setIsPending] = useState(false);
-
   
   const { register, handleSubmit } = useForm<Inputs>();
   const onSubmit = async (data: { username: string, password: string }) => {
     setIsPending(true);
-    const res = await login(data.username, data.password);
-    if (res instanceof UnauthorizedError) {
+    try {
+      const res = await login(data.username, data.password);
+        setIsPending(false);
+        setError(null);
+        dispatch(authenticate(res.jwt));
+    } catch (error: any) {
       setIsPending(false);
-      setError(res);
-    } else {
-      setIsPending(false);
-      setError(null);
-      dispatch(authenticate(res.jwt));
-    }
+      setError(error);
+    } 
   };
 
   if (isAuthenticated) {
