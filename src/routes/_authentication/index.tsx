@@ -14,24 +14,37 @@ import {
   Text,
   Input,
   VStack,
+  Button,
 } from "@chakra-ui/react";
 import { format } from "timeago.js";
 
 import { Loader } from "../../components/loader";
 import { MemePicture } from "../../components/meme-picture";
-import { AppState } from "../../main";
 import { fetchMemes, createComment } from "../../redux/features/memesSlice";
 import { AppDispatch, RootState } from '../../main';
 import { getUserByIdentification } from "../../redux/features/userSlice";
 import { signout } from "../../redux/features/authenticationSlice";
+import { useLocation } from "@tanstack/react-router";
 
 export const MemeFeedPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { username, pictureUrl: userPictureUrl } = useSelector((state: AppState) => state.user);
+  const { username, pictureUrl: userPictureUrl } = useSelector((state: RootState) => state.user);
   const isFetching = useSelector((state: RootState) => state.memes.isFetching);
-  const memes = useSelector((state: AppState) => state.memes.memes);
-  const token = useSelector((state: AppState) => state.auth.token);
-  const isAuthenticated = useSelector((state: AppState) => state.auth.isAuthenticated);
+  const memes = useSelector((state: RootState) => state.memes.memes);
+  const token = useSelector((state: RootState) => state.auth.token);
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const location: { search: { success: boolean } } = useLocation();
+
+  console.log('location ===> ', location);
+  
+  useEffect(() => {
+    if (location.search.success) {
+      window.location.href = '/';
+
+      // console.log('will re dispatch MEMESSSSS ===> ')
+      // dispatch(fetchMemes({ token, page: 1 }));
+    }
+  }, [location])
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -96,7 +109,7 @@ export const MemeFeedPage: React.FC = () => {
                   border="1px solid"
                   borderColor="gray.100"
                 >
-                  <Text color="gray.500" whiteSpace="pre-line" data-testid={`meme-description-${meme.id}`}>
+                  <Text color="gray.500" style={{ userSelect: "none" }} whiteSpace="pre-line" data-testid={`meme-description-${meme.id}`}>
                     {meme.description}
                   </Text>
                 </Box>
@@ -132,9 +145,13 @@ export const MemeFeedPage: React.FC = () => {
                     onSubmit={(event) => {
                       event.preventDefault();
                       dispatch(createComment({ token, memeId: meme.id, content: commentContent[meme.id] }));
+                      setCommentContent({
+                        ...commentContent,
+                        [meme.id]: "",
+                      });
                     }}
                   >
-                    <Flex alignItems="center">
+                    <Flex alignItems="center" style={{ marginTop: 10 }}>
                       <Avatar
                         borderWidth="1px"
                         borderColor="gray.300"
@@ -153,6 +170,14 @@ export const MemeFeedPage: React.FC = () => {
                         }}
                         value={commentContent[meme.id]}
                       />
+                      <Button
+                        type="submit"
+                        ml={2}
+                        data-testid={`meme-comment-submit-${meme.id}`}
+                        style={{ marginLeft: 15 }}
+                      >
+                        Comment
+                      </Button>
                     </Flex>
                   </form>
                 </Box>

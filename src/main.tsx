@@ -6,21 +6,15 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Provider } from 'react-redux';
 import { configureStore } from "@reduxjs/toolkit";
 
-import authReducer, { AuthenticationState } from './redux/features/authenticationSlice';
-import { userReducer, UserState } from './redux/features/userSlice';
-import { memesSlice, MemesState } from "./redux/features/memesSlice";
+import authReducer from './redux/features/authenticationSlice';
+import { userReducer } from './redux/features/userSlice';
+import { memesSlice } from "./redux/features/memesSlice";
 
 import { tokenExpirationMiddleware } from "./tokenExpirationMiddleware";
 
 import { theme } from "./config/theme";
 
 import { routeTree } from "./routeTree.gen";
-
-export type AppState = {
-  auth: AuthenticationState;
-  memes: MemesState;
-  user: UserState;
-}
 
 const router = createRouter({
   routeTree,

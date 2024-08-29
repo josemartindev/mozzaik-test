@@ -148,6 +148,55 @@ export async function createMemeComment(token: string, memeId: string, content: 
   }).then(res => checkStatus(res).json());
 }
 
+export type CreateMemeResponse = {
+  id: string;
+  pictureUrl: string;
+  description: string;
+  texts: {
+    content: string;
+    x: number;
+    y: number;
+  }[];
+  createdAt: string;
+  authorId: string;
+  commentsCount: string;
+}
+
+/**
+ * Create a meme
+ * @param token
+ * @param picture
+ * @param description
+ * @param texts
+ */
+export async function createMeme(token: string, description: string, picture: string, texts: { content: string, x: number, y: number }[]): Promise<any> {
+  console.log('PIC ==> ', picture);
+  const response = await fetch(picture);
+  if (!response.ok) {
+    throw new Error('Failed to fetch the image from the provided URL.');
+  }
+  const pictureBlob = await response.blob();
+  const formData = new FormData();
+
+  formData.append('Picture', pictureBlob);
+  formData.append('Description', description);
+
+  if (texts.length === 0) {
+    formData.append('Texts', '[]');
+  } else {
+     formData.append('Texts', JSON.stringify(texts));
+  }
+
+  return await fetch(`${BASE_URL}/memes`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+    body: formData,
+  }).then(res => checkStatus(res).json());
+}
+
+
 /**
  * Get an author by their id
  * @param token

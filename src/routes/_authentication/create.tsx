@@ -1,3 +1,5 @@
+import { useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Box,
   Button,
@@ -10,11 +12,13 @@ import {
   Textarea,
   VStack,
 } from "@chakra-ui/react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { MemeEditor } from "../../components/meme-editor";
-import { useMemo, useState } from "react";
-import { MemePictureProps } from "../../components/meme-picture";
 import { Plus, Trash } from "@phosphor-icons/react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+
+import { MemeEditor } from "../../components/meme-editor";
+import { MemePictureProps } from "../../components/meme-picture";
+import { fetchMemes, insertMeme } from "../../redux/features/memesSlice";
+import { RootState } from "../../main";
 
 export const Route = createFileRoute("/_authentication/create")({
   component: CreateMemePage,
@@ -26,8 +30,16 @@ type Picture = {
 };
 
 function CreateMemePage() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [picture, setPicture] = useState<Picture | null>(null);
   const [texts, setTexts] = useState<MemePictureProps["texts"]>([]);
+  const token = useSelector((state: RootState) => state.auth.token);
+  const [description, setDescription] = useState("");
+
+  const handleDescriptionChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setDescription(event.target.value);
+  };
 
   const handleDrop = (file: File) => {
     setPicture({
@@ -76,7 +88,7 @@ function CreateMemePage() {
             <Heading as="h2" size="md" mb={2}>
               Describe your meme
             </Heading>
-            <Textarea placeholder="Type your description here..." />
+            <Textarea onChange={handleDescriptionChange} placeholder="Type your description here..." />
           </Box>
         </VStack>
       </Box>
@@ -131,7 +143,11 @@ function CreateMemePage() {
             size="sm"
             width="full"
             color="white"
+            as={Link}
+            to="/?success=true"
             isDisabled={memePicture === undefined}
+            type="submit"
+            onClick={() => dispatch(insertMeme({ token, description, pictureUrl: picture!.url, texts }))}
           >
             Submit
           </Button>

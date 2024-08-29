@@ -8,18 +8,19 @@ import {
   Icon,
   Flex,
 } from "@chakra-ui/react";
+import { useDispatch, useSelector } from "react-redux";
 import { useQuery } from "@tanstack/react-query";
 import { CaretDown, CaretUp, SignOut } from "@phosphor-icons/react";
+
 import { getUserById } from "../api";
-import { useDispatch, useSelector } from "react-redux";
 import { signout } from "../redux/features/authenticationSlice";
-import { AppState } from "../main";
+
+import { RootState } from "../main";
 
 export const UserDropdown: React.FC = () => {
-  // const { state, signout } = useAuthentication();
-  const isAuthenticated = useSelector((state: AppState) => state.auth.isAuthenticated);
-  const token = useSelector((state: AppState) => state.auth.token);
-  const userId = useSelector((state: AppState) => state.auth.userId);
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const token = useSelector((state: RootState) => state.auth.token);
+  const userId = useSelector((state: RootState) => state.auth.userId);
   const dispatch = useDispatch();
   const { data: user, isLoading } = useQuery({
     queryKey: ["user", isAuthenticated ? userId : "anon"],

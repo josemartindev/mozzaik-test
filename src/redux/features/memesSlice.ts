@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { getAuthorById, getMemeComments, getMemes, createMemeComment } from '../../api';
+import { getAuthorById, getMemeComments, getMemes, createMemeComment, createMeme } from '../../api';
 
 export type Author = {
   id: string;
@@ -107,6 +107,19 @@ export const createComment = createAsyncThunk(
   }
 );
 
+export const insertMeme = createAsyncThunk(
+  'memes/insertMeme',
+  async ({ token, description, pictureUrl, texts }: { token: string, description: string, pictureUrl: string, texts: Text[] }, { rejectWithValue }) => {
+    try {
+      console.log('About to send to server ===> ', { token, description, pictureUrl, texts });
+      const meme = await createMeme(token, description, pictureUrl, texts);
+      return meme;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+)
+
 
 export const memesSlice = createSlice({
   name: 'memes',
@@ -128,6 +141,9 @@ export const memesSlice = createSlice({
         meme.comments.unshift(action.payload);
         meme.commentsCount = (parseInt(meme.commentsCount) + 1).toString();
       }
+    });
+    builder.addCase(insertMeme.fulfilled, (state, action) => {
+      state.memes.unshift(action.payload);
     });
   }
 });

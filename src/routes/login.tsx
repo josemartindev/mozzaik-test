@@ -16,7 +16,7 @@ import { login, UnauthorizedError } from "../api";
 
 import { authenticate } from "../redux/features/authenticationSlice";
 
-import { AppState } from "../main";
+import { RootState } from "../main";
 
 type SearchParams = {
   redirect?: string;
@@ -41,7 +41,7 @@ function renderError(error: Error) {
 export const LoginPage: React.FC = () => {
   const { redirect } = Route.useSearch();
   const dispatch = useDispatch();
-  const isAuthenticated = useSelector((state: AppState) => state.auth.isAuthenticated);
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const [error, setError] = useState<Error | null>(null);
   const [isPending, setIsPending] = useState(false);
   
@@ -53,9 +53,9 @@ export const LoginPage: React.FC = () => {
         setIsPending(false);
         setError(null);
         dispatch(authenticate(res.jwt));
-    } catch (error: any) {
+    } catch (error: unknown) {
       setIsPending(false);
-      setError(error);
+      setError(error as UnauthorizedError);
     } 
   };
 
